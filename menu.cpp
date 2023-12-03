@@ -3,7 +3,6 @@
 #include <vector>
 #include <iostream>
 
-
 struct program_options
 {
 	bool show_help = false;

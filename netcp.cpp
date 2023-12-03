@@ -1,15 +1,20 @@
 // g++-13 -o netcp -std=c++23 netcp.cpp
 #include <stdio.h>
+#include <iostream>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/ip.h>
+#include <arpa/inet.h>
 #include <cstdint>
 #include <system_error>
 #include <vector>
+#include <cstring>  // Para la función std::strchr
 #include <optional>
 //#include <expected>
 
 #define FILE_MISSING_ERROR 1
 #define SOCK_CREATION_ERROR 3
+#define ADDRESS_ASSIGNMENT_ERROR 4
 
 /*
  * ERROR 1: Falta nombre de archivo en los parametros de ejecución
@@ -34,11 +39,56 @@ std::string getenv(const std::string& name)
 	}
 }
 
-// std::error_code read_file(int fd, const std::vector<uint8_t>& buffer);
+std::optional<sockaddr_in> make_ip_address(const std::optional<std::string> ip_address, uint16_t port = 0) {
 
-// std::optional<sockaddr_in> make_ip_address(
-// 							const std::optional<std::string> ip_address, 
-// 							uint16_t port=0);
+	// Configuración por defecto.
+	sockaddr_in address{};
+	address.sin_family = AF_INET;
+	address.sin_port = htons(port);
+
+	if (ip_address) {
+		// Si se proporciona una dirección IP, intentamos parsearla
+		if (std::strchr(ip_address->c_str(), ':') != nullptr) {
+				// Si la dirección IP contiene un ':' asumimos que también se proporciona el puerto
+				std::string ip;
+				uint16_t new_port;
+
+				// Dividimos la cadena en la dirección IP y el puerto
+				std::size_t colon_pos = ip_address->find(':');
+				ip = ip_address->substr(0, colon_pos);
+				std::string port_str = ip_address->substr(colon_pos + 1);
+
+				// Intentamos convertir la parte del puerto a un número
+				try {
+						new_port = std::stoi(port_str);
+				} catch (const std::invalid_argument& e) {
+						std::cerr << "Error: Puerto no válido.\n";
+						return std::nullopt;
+				}
+
+				// Actualizamos la estructura sockaddr_in
+				address.sin_port = htons(new_port);
+				if (inet_aton(AF_INET, ip.c_str(), &(address.sin_addr)) <= 0) {
+						std::cerr << "Error: Dirección IP no válida.\n";
+						return std::nullopt;
+				}
+
+		} else {
+				// Si no hay ':' asumimos que solo se proporciona la dirección IP
+				if (inet_aton(AF_INET, ip_address->c_str(), &(address.sin_addr)) <= 0) {
+						std::cerr << "Error: Dirección IP no válida.\n";
+						return std::nullopt;
+				}
+		}
+	} else {
+			// Si no se proporciona una dirección IP, dejamos la dirección IP como INADDR_ANY
+			address.sin_addr.s_addr = INADDR_ANY;
+	}
+
+	return address;
+}
+
+// std::error_code read_file(int fd, const std::vector<uint8_t>& buffer);
 
 // using make_socket_result = std::expected<int, std::error_code>;
 
@@ -71,7 +121,23 @@ int main(int args, char* argv[]){
 		fprintf(stderr," Error al crear el socket\n");
 		return SOCK_CREATION_ERROR;
 	}
+	printf("%d\n",fd);
+	sockaddr_in local_address{};
+	// Domain TCP/IP
+	local_address.sin_family = AF_INET;
+	// Establecer cualquier direccion usando conversor de hexadecimal a long.
+	local_address.sin_addr.s_addr = htonl(INADDR_ANY);
+	// Asignar cualquier puerto.
+	local_address.sin_port = htons(0); 
 	
+	int result = bind(fd,reinterpret_cast<const sockaddr*>(&local_address), sizeof(local_address) );
+	if (result < 0) {
+		fprintf(stderr,"Error al asignar una dirección\n");
+		return ADDRESS_ASSIGNMENT_ERROR;
+	}
+	printf("%d\n",result);
+	std::string aux("192.168.0.1");
+	std::cout << aux.find('9');
 	// Comprobar que existe el archivo
   return 0;
 }

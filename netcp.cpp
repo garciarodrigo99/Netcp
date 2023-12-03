@@ -8,6 +8,9 @@
 #include <optional>
 //#include <expected>
 
+#define FILE_MISSING_ERROR 1
+#define SOCK_CREATION_ERROR 3
+
 /*
  * ERROR 1: Falta nombre de archivo en los parametros de ejecución
 */
@@ -50,12 +53,23 @@ int main(int args, char* argv[]){
 	if (args == 1){
 		fprintf(stderr,"%s: falta un archivo como argumento\n",argv[0]);
 		help(argv[0]);
-		return 1;
+		return FILE_MISSING_ERROR;
 	}
 
 	if ((argv[1] == "-h") || argv[1] == "--help"){
 		help(argv[0]);
 		return 0;
+	}
+
+	/*
+	* AF_INET: TCP/IP
+	* SOCK_DGRAM: UDP
+	* protocol: 0
+	*/
+	int fd = socket(AF_INET, SOCK_DGRAM, 0);
+	if (fd < 0) {
+		fprintf(stderr," Error al crear el socket\n");
+		return SOCK_CREATION_ERROR;
 	}
 	
 	// Comprobar que existe el archivo

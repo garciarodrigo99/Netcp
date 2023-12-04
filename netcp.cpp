@@ -1,4 +1,4 @@
-// g++-13 -o netcp -std=c++23 netcp.cpp
+// g++-13 -o netcp -std=c++20 -g netcp.cpp menu.cpp
 #include <stdio.h>
 #include <iostream>
 #include <sys/types.h>
@@ -45,37 +45,49 @@ std::optional<sockaddr_in> make_ip_address(const std::optional<std::string> ip_a
 	sockaddr_in address{};
 	address.sin_family = AF_INET;
 	address.sin_port = htons(port);
+	address.sin_addr.s_addr;
+
+	// Si se indica un número negativo,se establece como cero para que el sistema se encargue.
+	if (port < 0) {
+		port = 0;
+	}
+	
 
 	if (ip_address) {
 		// Si se proporciona una dirección IP, intentamos parsearla
 		if (std::strchr(ip_address->c_str(), ':') != nullptr) {
-				// Si la dirección IP contiene un ':' asumimos que también se proporciona el puerto
-				std::string ip;
-				uint16_t new_port;
+			// Si la dirección IP contiene un ':' asumimos que también se proporciona el puerto
 
-				// Dividimos la cadena en la dirección IP y el puerto
-				std::size_t colon_pos = ip_address->find(':');
-				ip = ip_address->substr(0, colon_pos);
-				std::string port_str = ip_address->substr(colon_pos + 1);
+			if(port != 0){
+				std::cerr << "Valor indicado dos maneras distintas.\n";
+				return std::nullopt;				
+			}
+			std::string ip;
+			uint16_t new_port;
 
-				// Intentamos convertir la parte del puerto a un número
-				try {
-						new_port = std::stoi(port_str);
-				} catch (const std::invalid_argument& e) {
-						std::cerr << "Error: Puerto no válido.\n";
-						return std::nullopt;
-				}
+			// Dividimos la cadena en la dirección IP y el puerto
+			std::size_t colon_pos = ip_address->find(':');
+			ip = ip_address->substr(0, colon_pos);
+			std::string port_str = ip_address->substr(colon_pos + 1);
 
-				// Actualizamos la estructura sockaddr_in
-				address.sin_port = htons(new_port);
-				if (inet_aton(AF_INET, ip.c_str(), &(address.sin_addr)) <= 0) {
-						std::cerr << "Error: Dirección IP no válida.\n";
-						return std::nullopt;
-				}
+			// Intentamos convertir la parte del puerto a un número
+			try {
+					new_port = std::stoi(port_str);
+			} catch (const std::invalid_argument& e) {
+					std::cerr << "Error: Puerto no válido.\n";
+					return std::nullopt;
+			}
+
+			// Actualizamos la estructura sockaddr_in
+			address.sin_port = htons(new_port);
+			if (inet_aton(ip.c_str(), &(address.sin_addr)) <= 0) {
+					std::cerr << "Error: Dirección IP no válida.\n";
+					return std::nullopt;
+			}
 
 		} else {
 				// Si no hay ':' asumimos que solo se proporciona la dirección IP
-				if (inet_aton(AF_INET, ip_address->c_str(), &(address.sin_addr)) <= 0) {
+				if (inet_aton(ip_address->c_str(), &(address.sin_addr)) <= 0) {
 						std::cerr << "Error: Dirección IP no válida.\n";
 						return std::nullopt;
 				}
@@ -135,9 +147,13 @@ int main(int args, char* argv[]){
 		fprintf(stderr,"Error al asignar una dirección\n");
 		return ADDRESS_ASSIGNMENT_ERROR;
 	}
-	printf("%d\n",result);
-	std::string aux("192.168.0.1");
-	std::cout << aux.find('9');
-	// Comprobar que existe el archivo
+
+	auto address = make_ip_address(std::nullopt);
+	auto address2 = make_ip_address(std::nullopt, 8080);
+	auto address3 = make_ip_address("192.168.10.2");
+	auto address4 = make_ip_address("192.168.10.2:8080");
+	auto address5 = make_ip_address("192.168.10.2", 8080);
+	auto address6 = make_ip_address("192.168.10.2:8080", 1234); 
+
   return 0;
 }

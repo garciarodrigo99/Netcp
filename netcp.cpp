@@ -39,6 +39,19 @@ std::string getenv(const std::string& name)
 	}
 }
 
+std::string ip_address_to_string(const sockaddr_in& address){
+	in_addr_t s_addr = address.sin_addr.s_addr;
+	in_addr addr;
+    addr.s_addr = s_addr;
+
+	std::string ip_str(inet_ntoa(addr));
+
+    // Concatenar la dirección IP y el número de puerto separados por ':'
+    std::string result = ip_str + ":" + std::to_string(ntohs(address.sin_port));
+
+    return result;
+}
+
 std::optional<sockaddr_in> make_ip_address(const std::optional<std::string> ip_address, uint16_t port = 0) {
 
 	// Configuración por defecto.
@@ -154,6 +167,13 @@ int main(int args, char* argv[]){
 	auto address4 = make_ip_address("192.168.10.2:8080");
 	auto address5 = make_ip_address("192.168.10.2", 8080);
 	auto address6 = make_ip_address("192.168.10.2:8080", 1234); 
+
+	if (address5.has_value()) {
+		const sockaddr_in& direccion = *address5;
+		std::cout << ip_address_to_string(direccion) << std::endl;
+	}
+	
+	
 
   return 0;
 }

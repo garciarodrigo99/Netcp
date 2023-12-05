@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/netcp",
-            "args": [],
+            "args": ["-o", "file"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

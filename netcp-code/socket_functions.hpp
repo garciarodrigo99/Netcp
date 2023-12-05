@@ -85,6 +85,7 @@ std::optional<sockaddr_in> make_ip_address(const std::optional<std::string> ip_a
 	return address;
 }
 
+//[[nodiscard]]
 using make_socket_result = std::expected<int, std::error_code>;
 make_socket_result make_socket(
 std::optional<sockaddr_in> address = std::nullopt){
@@ -101,7 +102,6 @@ std::optional<sockaddr_in> address = std::nullopt){
 								Netcp_errors::FILE_MISSING_ERROR.error_code, 
 								std::system_category()));
     }																		
-
     // Si se proporciona una dirección, intentar asignarla al socket
     if (address.has_value()) {
         sockaddr_in addr = address.value();

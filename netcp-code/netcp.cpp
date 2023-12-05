@@ -1,7 +1,8 @@
 // g++-13 -o netcp -std=c++20 -g netcp.cpp menu.cpp
 
-#include "socket_functions.hpp"
 #include "menu.hpp"
+#include "socket_functions.hpp"
+#include "file_functions.hpp"
 
 
 /*
@@ -10,10 +11,6 @@
 
 void help(char* program_name){
 	printf("Modo de empleo: %s [-h] ORIGEN\n",program_name);
-}
-
-void error_exit(std::string error_description, int error_code){
-
 }
 
 /*
@@ -33,54 +30,30 @@ std::string getenv(const std::string& name)
 
 // std::error_code read_file(int fd, const std::vector<uint8_t>& buffer);
 
-// using make_socket_result = std::expected<int, std::error_code>;
-
-// make_socket_result make_socket(std::optional<sockaddr_in> address = std::nullopt);
 // std::error_code send_to(int fd, 
 // 						const std::vector<uint8_t>& message,
 // 						const sockaddr_in& address);
 
 int main(int args, char* argv[]){
 
-	// Comprobar argumento 1
-	// if (args == 1){
-	// 	fprintf(stderr,"%s: falta un archivo como argumento\n",argv[0]);
-	// 	help(argv[0]);
-	// 	return Netcp_errors::FILE_MISSING_ERROR;
-	// }
-
-	// if ((argv[1] == "-h") || argv[1] == "--help"){
-	// 	help(argv[0]);
-	// 	return 0;
-	// }
 	auto options = parse_args(args, argv);
 	if (!options){
 		return EXIT_FAILURE;
 	}
-	if (options.value().output_filename.empty()){
-		netcpErrorExit(Netcp_errors::FILE_MISSING_ERROR);
-	}
-	// Usar options.value() para acceder a las opciones...
 	if (options.value().show_help) {
 		help(argv[0]);
 		return EXIT_SUCCESS;
 	}
-
-	// // printf("%d\n",fd);
-	// sockaddr_in local_address{};
-	// // Domain TCP/IP
-	// local_address.sin_family = AF_INET;
-	// // Establecer cualquier direccion usando conversor de hexadecimal a long.
-	// local_address.sin_addr.s_addr = htonl(INADDR_ANY);
-	// // Asignar cualquier puerto.
-	// local_address.sin_port = htons(0); 
+	if (options.value().output_filename.empty()){
+		netcpErrorExit(Netcp_errors::FILE_MISSING_ERROR);
+	}
 	
-	auto socket = make_socket();
+	auto address = make_ip_address(std::nullopt);
+	auto socket = make_socket(address.value());
 	if (socket) {
 		auto sock_fd = socket.value();
 		std::cout << sock_fd << std::endl;
 	}
-	std::cout << getenv("HOME") << std::endl;
 
   return EXIT_SUCCESS;
 }

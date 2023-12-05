@@ -97,7 +97,8 @@ std::optional<sockaddr_in> address = std::nullopt){
     int sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock_fd < 0) {
         // Error al crear el socket
-        return std::unexpected(std::error_code(Netcp_errors::SOCK_CREATION_ERROR, 
+        return std::unexpected(std::error_code(
+								Netcp_errors::FILE_MISSING_ERROR.error_code, 
 								std::system_category()));
     }																		
 
@@ -110,7 +111,9 @@ std::optional<sockaddr_in> address = std::nullopt){
         	close(sock_fd);  // Cerrar el socket
 
             // Devolver un error específico de bind
-            return std::unexpected(std::error_code(Netcp_errors::ADDRESS_ASSIGNMENT_ERROR, std::system_category()));
+            return std::unexpected(std::error_code(
+									Netcp_errors::ADDRESS_ASSIGMENT_ERROR.error_code, 
+									std::system_category()));
         }
     }
 

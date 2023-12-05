@@ -1,6 +1,8 @@
 // g++-13 -o netcp -std=c++20 -g netcp.cpp menu.cpp
 
 #include "socket_functions.hpp"
+#include "menu.hpp"
+
 
 /*
  * ERROR 1: Falta nombre de archivo en los parametros de ejecución
@@ -8,6 +10,10 @@
 
 void help(char* program_name){
 	printf("Modo de empleo: %s [-h] ORIGEN\n",program_name);
+}
+
+void error_exit(std::string error_description, int error_code){
+
 }
 
 /*
@@ -37,15 +43,27 @@ std::string getenv(const std::string& name)
 int main(int args, char* argv[]){
 
 	// Comprobar argumento 1
-	if (args == 1){
-		fprintf(stderr,"%s: falta un archivo como argumento\n",argv[0]);
-		help(argv[0]);
-		return Netcp_errors::FILE_MISSING_ERROR;
-	}
+	// if (args == 1){
+	// 	fprintf(stderr,"%s: falta un archivo como argumento\n",argv[0]);
+	// 	help(argv[0]);
+	// 	return Netcp_errors::FILE_MISSING_ERROR;
+	// }
 
-	if ((argv[1] == "-h") || argv[1] == "--help"){
+	// if ((argv[1] == "-h") || argv[1] == "--help"){
+	// 	help(argv[0]);
+	// 	return 0;
+	// }
+	auto options = parse_args(args, argv);
+	if (!options){
+		return EXIT_FAILURE;
+	}
+	if (options.value().output_filename.empty()){
+		netcpErrorExit(Netcp_errors::FILE_MISSING_ERROR);
+	}
+	// Usar options.value() para acceder a las opciones...
+	if (options.value().show_help) {
 		help(argv[0]);
-		return 0;
+		return EXIT_SUCCESS;
 	}
 
 	// // printf("%d\n",fd);
@@ -62,5 +80,7 @@ int main(int args, char* argv[]){
 		auto sock_fd = socket.value();
 		std::cout << sock_fd << std::endl;
 	}
-  return 0;
+	std::cout << getenv("HOME") << std::endl;
+
+  return EXIT_SUCCESS;
 }

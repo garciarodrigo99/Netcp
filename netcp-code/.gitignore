@@ -1,0 +1,7 @@
+# Ignorar el directorio "enunciados"
+enunciados/
+
+# Ignorar todos los directorios llamados "temp" en cualquier parte del proyecto
+**/temp/
+
+*.zip

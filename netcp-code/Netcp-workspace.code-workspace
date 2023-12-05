@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"optional": "cpp",
+			"system_error": "cpp"
+		},
+		"C_Cpp.default.cppStandard": "c++23"
+	}
+}

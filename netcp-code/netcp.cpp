@@ -1,4 +1,4 @@
-// g++-13 -o netcp -std=c++20 -g netcp.cpp menu.cpp
+// g++-13 -o netcp -std=c++23 -g netcp.cpp menu.cpp
 // Generación aleatoria de solo numeros y caracteres:
 // LC_CTYPE=C tr -dc 'a-zA-Z0-9' </dev/urandom | head -c 1024 >testfile
 
@@ -50,35 +50,49 @@ int main(int args, char* argv[]){
 		netcpErrorExit(Netcp_errors::FILE_MISSING_ERROR);
 	}
 
-	std::string file_path = "testfile.txt";  // Reemplaza con la ruta a tu archivo
-    int flags = O_RDONLY;
-    mode_t mode = 0;  // Modo no relevante para la apertura de lectura
-
-    auto result = open_file(file_path, flags, mode);
-    if (!result) {
-        std::cerr << "Error al abrir el archivo: " << result.error().message() << std::endl;
-        return result.error().value();
+    auto open_file_result = open_file("testfile.txt", O_RDONLY, 0);
+    if (!open_file_result) {
+        std::cerr << "Error al abrir el archivo: " << open_file_result.error().message() << std::endl;
+        netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
     }
 
-    int fd = result.value();
+    int fd = open_file_result.value();
     std::vector<uint8_t> buffer(1024);  // Tamaño del buffer, puedes ajustarlo según tus necesidades
 
-    auto read_result = read_file(fd, buffer);
-	std::cout << "read_result: " << read_result << std::endl;
-    if (!read_result) {
-        std::cout.write(reinterpret_cast<const char*>(buffer.data()), buffer.size());
+    auto read_open_file_result = read_file(fd, buffer);
+	std::cout << "read_open_file_result: " << read_open_file_result << std::endl;
+    if (!read_open_file_result) {
+        //std::cout.write(reinterpret_cast<const char*>(buffer.data()), buffer.size());
         std::cout << std::endl;
     } else {
-        std::cerr << "Error al leer el archivo: " << read_result.message() << std::endl;
-        return read_result.value();
+        std::cerr << "Error al leer el archivo: " << read_open_file_result.message() << std::endl;
+        return read_open_file_result.value();
     }
 	
+	//auto address = make_ip_address("192.168.10.2", 8080);
+	auto make_socket_result = make_socket();
+	if (make_socket_result){
+		int sock_fd = make_socket_result.value();
+	}
+	sockaddr_in remote_address = make_ip_address(std::nullopt,8080).value();
+	std::string message_text("¡Hola, mundo!");
+	int bytes_sent = sendto(make_socket_result.value(),
+							message_text.data(), message_text.size(), 
+							0,
+							reinterpret_cast<const sockaddr*>(&remote_address),
+							sizeof(sockaddr_in));
+	if (bytes_sent < 0) {
+		std::cerr << "Error en sendto: " << strerror(errno) << std::endl;
+		std::cerr << Netcp_errors::UNSENT_BYTES_ERROR.error_text;
+	}
+
 	// auto address = make_ip_address(std::nullopt);
 	// auto socket = make_socket(address.value());
 	// if (socket) {
 	// 	auto sock_fd = socket.value();
 	// 	std::cout << sock_fd << std::endl;
 	// }
+	close(make_socket_result.value());
 
   return EXIT_SUCCESS;
 }

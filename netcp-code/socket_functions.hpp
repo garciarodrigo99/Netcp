@@ -36,7 +36,6 @@ std::optional<sockaddr_in> make_ip_address(const std::optional<std::string> ip_a
 	if (port < 0) {
 		port = 0;
 	}
-	
 
 	if (ip_address) {
 		// Si se proporciona una dirección IP, intentamos parsearla
@@ -103,7 +102,7 @@ std::optional<sockaddr_in> address = std::nullopt){
 								std::system_category()));
     }																		
     // Si se proporciona una dirección, intentar asignarla al socket
-    if (address.has_value()) {
+    if (address != std::nullopt) {
         sockaddr_in addr = address.value();
 		int bind_result = bind(sock_fd, reinterpret_cast<const sockaddr*>(&addr), 
 								sizeof(addr));

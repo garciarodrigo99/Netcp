@@ -7,6 +7,7 @@ struct program_options
 {
 	bool show_help = false;
 	std::string output_filename;
+	bool listen = false;
 	// ...
 };
 
@@ -28,6 +29,10 @@ std::optional<program_options> parse_args(int argc, char* argv[]) {
 				std::cerr << "Error...\n";
 				return std::nullopt;
 			}
+		}
+		if (*it == "-l" || *it == "--listen")
+		{
+			options.listen = true;
 		}
 		// Opciones adicionales...
 	}

@@ -5,6 +5,7 @@
 #include "menu.hpp"
 #include "socket_functions.hpp"
 #include "file_functions.hpp"
+#include "message_functions.hpp"
 
 
 /*
@@ -61,10 +62,7 @@ int main(int args, char* argv[]){
 
     auto read_open_file_result = read_file(fd, buffer);
 	std::cout << "read_open_file_result: " << read_open_file_result << std::endl;
-    if (!read_open_file_result) {
-        //std::cout.write(reinterpret_cast<const char*>(buffer.data()), buffer.size());
-        std::cout << std::endl;
-    } else {
+    if (read_open_file_result) {
         std::cerr << "Error al leer el archivo: " << read_open_file_result.message() << std::endl;
         return read_open_file_result.value();
     }
@@ -76,22 +74,10 @@ int main(int args, char* argv[]){
 	}
 	sockaddr_in remote_address = make_ip_address(std::nullopt,8080).value();
 	std::string message_text("¡Hola, mundo!");
-	int bytes_sent = sendto(make_socket_result.value(),
-							message_text.data(), message_text.size(), 
-							0,
-							reinterpret_cast<const sockaddr*>(&remote_address),
-							sizeof(sockaddr_in));
-	if (bytes_sent < 0) {
-		std::cerr << "Error en sendto: " << strerror(errno) << std::endl;
-		std::cerr << Netcp_errors::UNSENT_BYTES_ERROR.error_text;
-	}
+	
+	send_to(make_socket_result.value(),message_text,remote_address);
+	send_to(make_socket_result.value(),buffer,remote_address);
 
-	// auto address = make_ip_address(std::nullopt);
-	// auto socket = make_socket(address.value());
-	// if (socket) {
-	// 	auto sock_fd = socket.value();
-	// 	std::cout << sock_fd << std::endl;
-	// }
 	close(make_socket_result.value());
 
   return EXIT_SUCCESS;

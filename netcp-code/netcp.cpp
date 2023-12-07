@@ -1,4 +1,4 @@
-// g++-13 -o netcp -std=c++23 -g netcp.cpp menu.cpp
+// g++-13 -o netcp -std=c++23 -g netcp.cpp
 // Generación aleatoria de solo numeros y caracteres:
 // LC_CTYPE=C tr -dc 'a-zA-Z0-9' </dev/urandom | head -c 1024 >testfile
 

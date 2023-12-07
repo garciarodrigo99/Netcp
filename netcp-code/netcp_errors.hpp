@@ -14,10 +14,11 @@ struct ErrorStruct {
 
 struct Netcp_errors {
     static constexpr ErrorStruct FILE_MISSING_ERROR{2,"No se especificó el archivo a enviar.\n"};
-    static constexpr ErrorStruct SOCKET_CREATION_ERROR{3,"No se pudo crear el socket.\n"};
-    static constexpr ErrorStruct ADDRESS_ASSIGMENT_ERROR{4,"No se pudo asignar una dirección al socket.\n"};
-    static constexpr ErrorStruct FILE_NOT_FOUND_ERROR{5,"No se pudo abrir el archivo indicado.\n"};
-    static constexpr ErrorStruct UNSENT_BYTES_ERROR{6,"No se ha podido enviar bytes.\n"};
+    static constexpr ErrorStruct PORT_MISSING_ERROR{3,"No se especificó al que escuchar.\n"};
+    static constexpr ErrorStruct SOCKET_CREATION_ERROR{4,"No se pudo crear el socket.\n"};
+    static constexpr ErrorStruct ADDRESS_ASSIGMENT_ERROR{5,"No se pudo asignar una dirección al socket.\n"};
+    static constexpr ErrorStruct FILE_NOT_FOUND_ERROR{6,"No se pudo abrir el archivo indicado.\n"};
+    static constexpr ErrorStruct UNSENT_BYTES_ERROR{7,"No se ha podido enviar bytes.\n"};
 };
 
 void netcpErrorExit(const ErrorStruct& error_type){

@@ -6,11 +6,7 @@
 #include "socket_functions.hpp"
 #include "file_functions.hpp"
 #include "message_functions.hpp"
-
-
-/*
- * ERROR 1: Falta nombre de archivo en los parametros de ejecución
-*/
+#include <format>
 
 void help(char* program_name){
 	printf("Modo de empleo: %s [-h] ORIGEN\n",program_name);
@@ -31,11 +27,34 @@ std::string getenv(const std::string& name)
 	}
 }
 
-// std::error_code read_file(int fd, const std::vector<uint8_t>& buffer);
+void listeningMode(int listen_port){
+	sockaddr_in remote_address{};
+	socklen_t src_len = sizeof(remote_address);
 
-// std::error_code send_to(int fd, 
-// 						const std::vector<uint8_t>& message,
-// 						const sockaddr_in& address);
+	std::string message_text;
+	message_text.resize(100);
+
+	auto make_socket_result = make_socket();
+	if (!make_socket_result){
+		std::cerr << "Listening mode: ";
+		netcpErrorExit(Netcp_errors::SOCKET_CREATION_ERROR);
+	}
+	int sock_fd = make_socket_result.value();
+
+	int bytes_read = recvfrom(sock_fd,
+							message_text.data(), message_text.size(), 
+							0,
+							reinterpret_cast<sockaddr*>(&remote_address),
+							&src_len);
+	if (bytes_read < 0){
+	// Error al recibir el mensaje.
+	}
+	message_text.resize(bytes_read);
+	// Imprimir el mensaje y la dirección del remitente
+	std::cout << std::format("El sistema '{}'' envió el mensaje '{}'\n",
+							ip_address_to_string(remote_address),
+							message_text.c_str());
+}
 
 int main(int args, char* argv[]){
 
@@ -51,7 +70,11 @@ int main(int args, char* argv[]){
 		netcpErrorExit(Netcp_errors::FILE_MISSING_ERROR);
 	}
 
-    auto open_file_result = open_file("testfile.txt", O_RDONLY, 0);
+	if (options.value().listen){
+		listeningMode(options.value().listen_port);
+	}
+
+    auto open_file_result = open_file(options.value().output_filename, O_RDONLY, 0);
     if (!open_file_result) {
         std::cerr << "Error al abrir el archivo: " << open_file_result.error().message() << std::endl;
         netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
@@ -69,16 +92,17 @@ int main(int args, char* argv[]){
 	
 	//auto address = make_ip_address("192.168.10.2", 8080);
 	auto make_socket_result = make_socket();
-	if (make_socket_result){
-		int sock_fd = make_socket_result.value();
+	if (!make_socket_result){
+		netcpErrorExit(Netcp_errors::SOCKET_CREATION_ERROR);
 	}
+	int sock_fd = make_socket_result.value();
 	sockaddr_in remote_address = make_ip_address(std::nullopt,8080).value();
 	std::string message_text("¡Hola, mundo!");
 	
-	send_to(make_socket_result.value(),message_text,remote_address);
-	send_to(make_socket_result.value(),buffer,remote_address);
+	send_to(sock_fd,message_text,remote_address);
+	send_to(sock_fd,buffer,remote_address);
 
-	close(make_socket_result.value());
+	close(sock_fd);
 
   return EXIT_SUCCESS;
 }

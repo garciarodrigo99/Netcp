@@ -34,7 +34,8 @@ void listeningMode(int listen_port){
 	std::string message_text;
 	message_text.resize(100);
 
-	auto make_socket_result = make_socket();
+	auto address = make_ip_address(std::nullopt, listen_port);
+	auto make_socket_result = make_socket(address.value());
 	if (!make_socket_result){
 		std::cerr << "Listening mode: ";
 		netcpErrorExit(Netcp_errors::SOCKET_CREATION_ERROR);
@@ -66,12 +67,12 @@ int main(int args, char* argv[]){
 		help(argv[0]);
 		return EXIT_SUCCESS;
 	}
-	if (options.value().output_filename.empty()){
-		netcpErrorExit(Netcp_errors::FILE_MISSING_ERROR);
-	}
-
 	if (options.value().listen){
 		listeningMode(options.value().listen_port);
+		return EXIT_SUCCESS;
+	}
+	if (options.value().output_filename.empty()){
+		netcpErrorExit(Netcp_errors::FILE_MISSING_ERROR);
 	}
 
     auto open_file_result = open_file(options.value().output_filename, O_RDONLY, 0);
@@ -99,7 +100,7 @@ int main(int args, char* argv[]){
 	sockaddr_in remote_address = make_ip_address(std::nullopt,8080).value();
 	std::string message_text("¡Hola, mundo!");
 	
-	send_to(sock_fd,message_text,remote_address);
+	//send_to(sock_fd,message_text,remote_address);
 	send_to(sock_fd,buffer,remote_address);
 
 	close(sock_fd);

@@ -27,4 +27,12 @@ std::error_code read_file(int fd, std::vector<uint8_t>& buffer) {
     return std::error_code(0, std::system_category());
 }
 
-std::error_code write_file(int fd, const std::vector<uint8_t>& buffer);
+[[nodiscard]]
+std::error_code write_file(int fd, const std::vector<uint8_t>& buffer){
+
+    ssize_t bytes_write = write(fd, buffer.data(), buffer.size());
+    if (bytes_write < 0) {
+        return std::error_code(errno, std::system_category());
+    }
+    return std::error_code(0, std::system_category());
+}

@@ -24,14 +24,6 @@ std::optional<program_options> parse_args(int argc, char* argv[]) {
 			options.show_help = true;
 		}
 
-		if (*it == "-o" || *it == "--output") {
-			if (++it != end) {
-				options.output_filename = *it;
-			} else {
-				std::cerr << "Error: " << Netcp_errors::FILE_MISSING_ERROR.error_text;
-				return std::nullopt;
-			}
-		}
 		if (*it == "-l" || *it == "--listen")
 		{
 			options.listen = true;
@@ -41,7 +33,16 @@ std::optional<program_options> parse_args(int argc, char* argv[]) {
 				std::cerr << "Error: " << Netcp_errors::PORT_MISSING_ERROR.error_text;
 				return std::nullopt;
 			}
+			continue;
 		}
+		//if (*it == "-o" || *it == "--output") {
+			if (it != end) {
+				options.output_filename = *it;
+			} else {
+				std::cerr << "Error: " << Netcp_errors::FILE_MISSING_ERROR.error_text;
+				return std::nullopt;
+			}
+		//}
 		// Opciones adicionales...
 	}
 	return options;

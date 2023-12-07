@@ -19,6 +19,7 @@ struct Netcp_errors {
     static constexpr ErrorStruct ADDRESS_ASSIGMENT_ERROR{5,"No se pudo asignar una dirección al socket.\n"};
     static constexpr ErrorStruct FILE_NOT_FOUND_ERROR{6,"No se pudo abrir el archivo indicado.\n"};
     static constexpr ErrorStruct UNSENT_BYTES_ERROR{7,"No se ha podido enviar bytes.\n"};
+    static constexpr ErrorStruct UNRECEIVED_BYTES_ERROR{8,"No se ha podido recibir bytes.\n"};
 };
 
 void netcpErrorExit(const ErrorStruct& error_type){

@@ -6,7 +6,7 @@
 #include "socket_functions.hpp"
 #include "file_functions.hpp"
 #include "message_functions.hpp"
-#include <format>
+//#include <format>
 
 void help(char* program_name){
 	printf("Modo de empleo: %s [-h] ORIGEN\n",program_name);
@@ -42,19 +42,7 @@ void listeningMode(int listen_port){
 	}
 	int sock_fd = make_socket_result.value();
 
-	int bytes_read = recvfrom(sock_fd,
-							message_text.data(), message_text.size(), 
-							0,
-							reinterpret_cast<sockaddr*>(&remote_address),
-							&src_len);
-	if (bytes_read < 0){
-	// Error al recibir el mensaje.
-	}
-	message_text.resize(bytes_read);
-	// Imprimir el mensaje y la dirección del remitente
-	std::cout << std::format("El sistema '{}'' envió el mensaje '{}'\n",
-							ip_address_to_string(remote_address),
-							message_text.c_str());
+	receive_from(sock_fd,message_text,remote_address);
 }
 
 int main(int args, char* argv[]){

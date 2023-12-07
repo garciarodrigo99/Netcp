@@ -1,5 +1,8 @@
 # Ignorar el directorio "enunciados"
-enunciados/
+enunciados/*
+
+# Ignorar el directorio "enunciados"
+pruebas/*
 
 # Ignorar todos los directorios llamados "temp" en cualquier parte del proyecto
 **/temp/

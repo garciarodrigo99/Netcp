@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/netcp",
-            "args": ["-l", "8080", "textfiles/testfile2.txt"],
+            "args": ["-l","8080","textfiles/testfile.txt"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

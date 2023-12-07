@@ -14,9 +14,10 @@ void help(char* program_name){
 
 /*
 * Dada una cadena std::string, obtener la variable de entorno en un objeto 
-* std::string
+* std::string. Se añadió barra baja al final ya que llamaba a la llamada del
+* sistema, no a la del programa
 */
-std::string getenv(const std::string& name)
+std::string getenv_(const std::string& name)
 {
 	char* value = getenv(name.c_str());
 	if (value) {
@@ -85,13 +86,19 @@ int main(int args, char* argv[]){
 	if (options.value().output_filename.empty()){
 		netcpErrorExit(Netcp_errors::FILE_MISSING_ERROR);
 	}
+	int port = options.value().port;
+	if (options.value().port == 0){
+		port = std::stoi(getenv_("NETCP_PORT"));
+	}
+	std::cout << "Variable de entorno NETCP_PORT: " << getenv_("NETCP_PORT") << std::endl;
+	std::cout << "Variable de entorno NETCP_IP: " << getenv_("NETCP_IP") << std::endl;
 	if (options.value().listen){
-		listeningMode(options.value().listen_port,options.value().output_filename);
+		listeningMode(port,options.value().output_filename);
 		return EXIT_SUCCESS;
 	}
 
 	// -Función enviar-
-
+	
     auto open_file_result = open_file(options.value().output_filename, O_RDONLY, 0);
     if (!open_file_result) {
         std::cerr << "Error al abrir el archivo: " << open_file_result.error().message() << std::endl;
@@ -119,7 +126,8 @@ int main(int args, char* argv[]){
 		netcpErrorExit(Netcp_errors::SOCKET_CREATION_ERROR);
 	}
 	int sock_fd = make_socket_result.value();
-	sockaddr_in remote_address = make_ip_address(std::nullopt,8080).value();
+
+	sockaddr_in remote_address = make_ip_address(getenv_("NETCP_IP"),port).value();
 
 	send_to(sock_fd,buffer,remote_address);
 

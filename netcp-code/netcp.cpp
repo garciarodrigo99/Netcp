@@ -31,8 +31,7 @@ void listeningMode(int listen_port){
 	sockaddr_in remote_address{};
 	socklen_t src_len = sizeof(remote_address);
 
-	std::string message_text;
-	message_text.resize(100);
+	std::vector<uint8_t> buffer(100);
 
 	auto address = make_ip_address(std::nullopt, listen_port);
 	auto make_socket_result = make_socket(address.value());
@@ -42,7 +41,7 @@ void listeningMode(int listen_port){
 	}
 	int sock_fd = make_socket_result.value();
 
-	receive_from(sock_fd,message_text,remote_address);
+	receive_from(sock_fd,buffer,remote_address);
 }
 
 int main(int args, char* argv[]){
@@ -86,9 +85,7 @@ int main(int args, char* argv[]){
 	}
 	int sock_fd = make_socket_result.value();
 	sockaddr_in remote_address = make_ip_address(std::nullopt,8080).value();
-	std::string message_text("¡Hola, mundo!");
-	
-	//send_to(sock_fd,message_text,remote_address);
+
 	send_to(sock_fd,buffer,remote_address);
 
 	close(sock_fd);

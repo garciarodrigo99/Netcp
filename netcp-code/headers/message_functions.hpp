@@ -71,14 +71,10 @@ std::error_code receive_from(int fd, std::vector<uint8_t>& message,
 	}
 	message.resize(bytes_read);
 
-	// Crear una cadena formateada con los elementos del vector
-    std::string formattedMessage;
-    for (uint8_t byte : message) {
-        formattedMessage += std::format("{:02X} ", byte);  // Imprimir cada byte como hexadecimal
-    }
+	std::string output(message.begin(),message.end());
 	// Imprimir el mensaje y la dirección del remitente
 	std::cout << std::format("El sistema '{}'' envió el mensaje '{}'\n",
 							ip_address_to_string(address),
-							formattedMessage);	
+							output);	
 	return std::error_code(0, std::system_category());
 }

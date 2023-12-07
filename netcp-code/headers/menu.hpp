@@ -9,6 +9,7 @@ struct program_options
 	bool show_help = false;
 	std::string output_filename;
 	bool listen = false;
+	bool env = false;
 	int port = 0;
 	// ...
 };
@@ -38,11 +39,14 @@ std::optional<program_options> parse_args(int argc, char* argv[]) {
 		if (it != end) {
 			auto increment = it;
 			++increment;
-			// Puerto no especificado
+			// Puerto especificado
 			if (increment != end){
 				options.port = std::stoi(std::string(*it));
 				options.output_filename = *increment;
+				it++;
+				continue;
 			} else {
+				options.env = true;
 				options.output_filename = *it;
 			}
 		} else {

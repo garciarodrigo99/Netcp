@@ -127,7 +127,15 @@ int main(int args, char* argv[]){
 	}
 	int sock_fd = make_socket_result.value();
 
-	sockaddr_in remote_address = make_ip_address(getenv_("NETCP_IP"),port).value();
+	sockaddr_in remote_address;
+
+	if (options.value().env){
+		remote_address = make_ip_address(getenv_("NETCP_IP"),port).value();
+	} else{
+		// Si no se elige usar las variables de entorno, make_ip_address se 
+		// llama con std::nullopt para que se asigne 0.0.0.0 
+		remote_address = make_ip_address(std::nullopt,port).value();
+	}
 
 	send_to(sock_fd,buffer,remote_address);
 

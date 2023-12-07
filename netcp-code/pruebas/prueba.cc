@@ -2,9 +2,9 @@
 // Generación aleatoria de solo numeros y caracteres:
 // LC_CTYPE=C tr -dc 'a-zA-Z0-9' </dev/urandom | head -c 1024 >testfile
 
-#include "menu.hpp"
-#include "socket_functions.hpp"
-#include "file_functions.hpp"
+#include "../headers/menu.hpp"
+#include "../headers/socket_functions.hpp"
+#include "../headers/file_functions.hpp"
 
 int main(int args, char* argv[]){
     // Crear el socket

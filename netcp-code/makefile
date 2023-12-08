@@ -3,8 +3,9 @@
 NETCP_CODE = netcp.cpp
 NETCP_EXE = netcp
 DEFAULT_PORT = 8080
-DEFAULT_ORIGIN_FILE = textfiles/testfile_1kb.txt
-DEFAULT_DESTINATION_FILE = textfiles/testfile_1kb_receive.txt
+DEFAULT_ORIGIN_FILE = textfiles/testfile_big.txt
+DEFAULT_DESTINATION_FILE = textfiles/testfile_big_receive.txt
+TRACE_FILE = headers/trace_macro.hpp
 
 # Reglas explícitas
 # g++ -std=c++14 -g -Wall -o bin/main main/main.cc
@@ -12,8 +13,8 @@ DEFAULT_DESTINATION_FILE = textfiles/testfile_1kb_receive.txt
 default:
 	g++-13 -o $(NETCP_EXE) -std=c++23 -g $(NETCP_CODE)
 
-# file:
-# 	$(EXE_FILE) $(IN_FILE)
+trace:
+	g++-13 -o $(NETCP_EXE) -std=c++23 -g -DTRACE -I/$(TRACE_FILE) $(NETCP_CODE)
 
 server: 
 	./$(NETCP_EXE) $(DEFAULT_PORT) $(DEFAULT_ORIGIN_FILE)

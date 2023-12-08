@@ -116,7 +116,6 @@ std::error_code netcp_send_file(const std::string& filename,
             netcpErrorExit(Netcp_errors::UNSENT_BYTES_ERROR);
         }
 
-
 		// // Cerrar el descriptor de la llamada a read_file
 		// close(read_file_result.value());
 
@@ -141,4 +140,54 @@ std::error_code netcp_send_file(const std::string& filename,
 	return std::error_code(0, std::system_category());
 }
 
-std::error_code netcp_receive_file(const std::string& filename);
+std::error_code netcp_receive_file(const std::string& filename,
+								int sock_fd,
+								sockaddr_in& remote_address){
+
+	// auto open_file_result = open_file(filename, 
+	// 							O_WRONLY | O_CREAT, 
+	// 							0666);
+
+	// 	if (!open_file_result) {
+	// 		std::cerr << "Listening mode: ";
+	// 		std::cerr << "Error al abrir el archivo: " << open_file_result.error().message() << std::endl;
+	// 		netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
+	// 	}
+
+	// int open_file_fd = open_file_result.value();
+    std::vector<uint8_t> buffer(UDP_SIZE);  // Tamaño del buffer
+
+	int count = 1;
+
+	while (true) {
+
+        auto send_result = receive_from(sock_fd,buffer,remote_address);
+        if (send_result) {
+            std::cerr << "Error al enviar el archivo: " << send_result.message() << std::endl;
+            netcpErrorExit(Netcp_errors::UNSENT_BYTES_ERROR);
+        }
+		TRACE_MSG("----- Recibido: -----");
+		TRACE_VECTOR(buffer);
+		TRACE_MSG("------------------");
+		TRACE_MSG("Iteración nº: " << count << "\n");
+
+		// Verificar si llega al final del archivo
+        if (buffer.empty()) {
+			TRACE_MSG("Buffer vacío");
+            break;
+        }
+
+		// auto write_file_result = write_file(open_file_fd, buffer);
+		// std::cout << "write_file_result: " << write_file_result << std::endl;
+		// if (write_file_result) {
+		// 	std::cerr << "Listening mode: ";
+		// 	std::cerr << "Error al escribir el archivo: " << open_file_result.error().message() << std::endl;
+		// 	netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
+		// }
+	}
+
+	// Cerrar el descriptor de la llamada a open_file
+	//close(open_file_fd);
+
+	return std::error_code(0, std::system_category());
+}

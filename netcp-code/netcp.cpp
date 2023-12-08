@@ -36,8 +36,6 @@ void listeningMode(int listen_port,const std::string& path){
 	sockaddr_in remote_address{};
 	socklen_t src_len = sizeof(remote_address);
 
-	std::vector<uint8_t> buffer(1024);
-
 	auto address = make_ip_address(std::nullopt, listen_port);
 	auto make_socket_result = make_socket(address.value());
 	if (!make_socket_result){
@@ -46,32 +44,7 @@ void listeningMode(int listen_port,const std::string& path){
 	}
 	int sock_fd = make_socket_result.value();
 
-	receive_from(sock_fd,buffer,remote_address);
-
-    auto open_file_result = open_file(path, 
-									O_WRONLY | O_CREAT, 
-									0666);
-    if (!open_file_result) {
-		std::cerr << "Listening mode: ";
-        std::cerr << "Error al abrir el archivo: " << open_file_result.error().message() << std::endl;
-        netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
-    }
-
-    int open_file_fd = open_file_result.value();
-
-    auto write_file_result = write_file(open_file_fd, buffer);
-	std::cout << "write_file_result: " << write_file_result << std::endl;
-    if (write_file_result) {
-		std::cerr << "Listening mode: ";
-        std::cerr << "Error al escribir el archivo: " << open_file_result.error().message() << std::endl;
-        netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
-    }
-
-	// Cerrar el descriptor de la llamada a open_file
-	close(open_file_fd);
-
-	// Cerrar el descriptor de la llamada a write_file
-	close(write_file_result.value());
+	netcp_receive_file(path,sock_fd,remote_address);
 }
 
 int main(int args, char* argv[]){

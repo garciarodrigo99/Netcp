@@ -2,10 +2,13 @@
 #include <system_error>
 #include <string>
 #include <vector>
-#include "netinet/in.h"
 #include <iostream>
-#include "netcp_errors.hpp"
 #include <format>
+#include "netinet/in.h"
+#include "netcp_errors.hpp"
+#include "trace_macro.hpp"
+
+#define UDP_SIZE 1024
 
 std::error_code send_to(int fd, const std::string& message,const sockaddr_in& address){
     int bytes_sent = sendto(fd,
@@ -58,6 +61,7 @@ std::error_code receive_from(int fd, std::string& message, sockaddr_in& address)
 
 std::error_code receive_from(int fd, std::vector<uint8_t>& message, 
 							sockaddr_in& address){
+							
 	socklen_t src_len = sizeof(address);
 	int bytes_read = recvfrom(fd,
 							message.data(), message.size(), 
@@ -78,3 +82,57 @@ std::error_code receive_from(int fd, std::vector<uint8_t>& message,
 							output);	
 	return std::error_code(0, std::system_category());
 }
+
+std::error_code netcp_send_file(const std::string& filename,
+								int sock_fd,
+								const sockaddr_in& remote_address){
+	TRACE_MSG("Traza activada");		
+	auto open_file_result = open_file(filename, O_RDONLY, 0);
+    if (!open_file_result) {
+        std::cerr << "Error al abrir el archivo: " << open_file_result.error().message() << std::endl;
+        netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
+    }
+
+    int open_file_fd = open_file_result.value();
+    std::vector<uint8_t> buffer(UDP_SIZE);  // Tamaño del buffer
+
+	while (true)
+	{
+		auto read_file_result = read_file(open_file_fd, buffer);
+		//std::cout << "read_file_result: " << read_file_result << std::endl;
+    	if (read_file_result) {
+        	std::cerr << "Error al leer el archivo: " << read_file_result.message() << std::endl;
+        	netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
+    	}
+
+		// Verificar si llega al final del archivo
+        if (buffer.empty()) {
+			TRACE_MSG("Buffer vacío");
+            break;
+        }
+		TRACE_MSG("----- Leído: -----");
+		TRACE_VECTOR(buffer);
+		TRACE_MSG("------------------");
+        auto send_result = send_to(sock_fd, buffer, remote_address);
+        if (send_result) {
+            std::cerr << "Error al enviar el archivo: " << send_result.message() << std::endl;
+            netcpErrorExit(Netcp_errors::UNSENT_BYTES_ERROR);
+        }
+
+        // Limpiar el búfer
+        buffer.resize(UDP_SIZE);
+		// // Cerrar el descriptor de la llamada a read_file
+		// close(read_file_result.value());
+
+		send_to(sock_fd,buffer,remote_address);
+	}
+	
+
+	// Cerrar el descriptor de la llamada a open_file
+	close(open_file_fd);
+
+	// Cerrar el descriptor de la llamada a make_socket
+	return std::error_code(0, std::system_category());
+}
+
+std::error_code netcp_receive_file(const std::string& filename);

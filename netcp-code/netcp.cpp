@@ -6,6 +6,7 @@
 #include "headers/socket_functions.hpp"
 #include "headers/file_functions.hpp"
 #include "headers/message_functions.hpp"
+#include "headers/trace_macro.hpp"
 //#include <format>
 
 void help(char* program_name){
@@ -90,37 +91,14 @@ int main(int args, char* argv[]){
 	if (options.value().port == 0){
 		port = std::stoi(getenv_("NETCP_PORT"));
 	}
-	std::cout << "Variable de entorno NETCP_PORT: " << getenv_("NETCP_PORT") << std::endl;
-	std::cout << "Variable de entorno NETCP_IP: " << getenv_("NETCP_IP") << std::endl;
+	TRACE_MSG("Variable de entorno NETCP_PORT: " << getenv_("NETCP_PORT"));
+	TRACE_MSG("Variable de entorno NETCP_IP: " << getenv_("NETCP_IP"));;
 	if (options.value().listen){
 		listeningMode(port,options.value().output_filename);
 		return EXIT_SUCCESS;
 	}
 
 	// -Función enviar-
-	
-    auto open_file_result = open_file(options.value().output_filename, O_RDONLY, 0);
-    if (!open_file_result) {
-        std::cerr << "Error al abrir el archivo: " << open_file_result.error().message() << std::endl;
-        netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
-    }
-
-    int open_file_fd = open_file_result.value();
-    std::vector<uint8_t> buffer(1024);  // Tamaño del buffer
-
-    auto read_file_result = read_file(open_file_fd, buffer);
-	std::cout << "read_file_result: " << read_file_result << std::endl;
-    if (read_file_result) {
-        std::cerr << "Error al leer el archivo: " << read_file_result.message() << std::endl;
-        netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
-    }
-
-	// Cerrar el descriptor de la llamada a open_file
-	close(open_file_fd);
-
-	// Cerrar el descriptor de la llamada a read_file
-	close(read_file_result.value());
-
 	auto make_socket_result = make_socket();
 	if (!make_socket_result){
 		netcpErrorExit(Netcp_errors::SOCKET_CREATION_ERROR);
@@ -137,9 +115,8 @@ int main(int args, char* argv[]){
 		remote_address = make_ip_address(std::nullopt,port).value();
 	}
 
-	send_to(sock_fd,buffer,remote_address);
+	netcp_send_file(options.value().output_filename,sock_fd,remote_address);
 
-	// Cerrar el descriptor de la llamada a make_socket
 	close(sock_fd);
 
   return EXIT_SUCCESS;

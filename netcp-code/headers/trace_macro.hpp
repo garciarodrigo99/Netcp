@@ -6,11 +6,26 @@
 #define TRACE_MACRO_HPP
 
 #include <iostream>
+#include <vector>
 
 #ifdef TRACE
+// Función de utilidad para imprimir elementos de un vector
+template <typename T>
+void print_vector(const std::vector<T>& vec) {
+    std::cout << "[";
+    for (const auto& elem : vec) {
+        std::cout << elem;
+    }
+    std::cout << "]" << std::endl;
+}
 #define TRACE_MSG(message) std::cout << "TRACE: " << message << std::endl
+#define TRACE_VECTOR(vec) print_vector(vec)
+
 #else
+
 #define TRACE_MSG(message)
+#define TRACE_VECTOR(vec)
+
 #endif
 
 #endif // TRACE_MACRO_HPP

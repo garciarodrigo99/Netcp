@@ -86,7 +86,7 @@ std::error_code receive_from(int fd, std::vector<uint8_t>& message,
 std::error_code netcp_send_file(const std::string& filename,
 								int sock_fd,
 								const sockaddr_in& remote_address){
-	TRACE_MSG("Traza activada");		
+	
 	auto open_file_result = open_file(filename, O_RDONLY, 0);
     if (!open_file_result) {
         std::cerr << "Error al abrir el archivo: " << open_file_result.error().message() << std::endl;
@@ -96,6 +96,7 @@ std::error_code netcp_send_file(const std::string& filename,
     int open_file_fd = open_file_result.value();
     std::vector<uint8_t> buffer(UDP_SIZE);  // Tamaño del buffer
 
+	int count = 1;
 	while (true)
 	{
 		auto read_file_result = read_file(open_file_fd, buffer);
@@ -105,26 +106,31 @@ std::error_code netcp_send_file(const std::string& filename,
         	netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
     	}
 
-		// Verificar si llega al final del archivo
-        if (buffer.empty()) {
-			TRACE_MSG("Buffer vacío");
-            break;
-        }
 		TRACE_MSG("----- Leído: -----");
 		TRACE_VECTOR(buffer);
 		TRACE_MSG("------------------");
+		TRACE_MSG("Iteración nº: " << count << "\n");
         auto send_result = send_to(sock_fd, buffer, remote_address);
         if (send_result) {
             std::cerr << "Error al enviar el archivo: " << send_result.message() << std::endl;
             netcpErrorExit(Netcp_errors::UNSENT_BYTES_ERROR);
         }
 
-        // Limpiar el búfer
-        buffer.resize(UDP_SIZE);
+
 		// // Cerrar el descriptor de la llamada a read_file
 		// close(read_file_result.value());
 
 		send_to(sock_fd,buffer,remote_address);
+
+		// Verificar si llega al final del archivo
+        if (buffer.empty()) {
+			TRACE_MSG("Buffer vacío");
+            break;
+        }
+
+		// Limpiar el búfer(dejando tamaño UDP_SIZE). Con clear da error.
+        buffer.resize(UDP_SIZE);
+		count++;
 	}
 	
 

@@ -62,10 +62,10 @@ int main(int args, char* argv[]){
 	}
 	int port = options.value().port;
 	if (options.value().port == 0){
+		TRACE_MSG("NETCP_PORT: " << getenv_("NETCP_PORT"));
 		port = std::stoi(getenv_("NETCP_PORT"));
 	}
-	TRACE_MSG("Variable de entorno NETCP_PORT: " << getenv_("NETCP_PORT"));
-	TRACE_MSG("Variable de entorno NETCP_IP: " << getenv_("NETCP_IP"));;
+
 	if (options.value().listen){
 		listeningMode(port,options.value().output_filename);
 		return EXIT_SUCCESS;
@@ -81,6 +81,7 @@ int main(int args, char* argv[]){
 	sockaddr_in remote_address;
 
 	if (options.value().env){
+		TRACE_MSG("NETCP_IP: " << getenv_("NETCP_IP"));
 		remote_address = make_ip_address(getenv_("NETCP_IP"),port).value();
 	} else{
 		// Si no se elige usar las variables de entorno, make_ip_address se 

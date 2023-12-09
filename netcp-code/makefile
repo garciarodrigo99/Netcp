@@ -41,8 +41,10 @@ client-trace:
 client-env-trace: 
 	./$(NETCP_EXE_TRACE) -l $(DEFAULT_DESTINATION_FILE)
 
-# run-file: 
-# 	default file
+# ! No se guarda en la shell en la que se ejecuta
+export_:
+	export NETCP_PORT=8080; \
+	export NETCP_IP=192.168.0.26; \
 
 clean:
 	rm $(NETCP_EXE)

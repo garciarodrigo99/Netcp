@@ -46,3 +46,4 @@ client-env-trace:
 
 clean:
 	rm $(NETCP_EXE)
+	rm $(NETCP_EXE_TRACE)

@@ -36,6 +36,7 @@ std::error_code send_to(int fd, const std::vector<uint8_t>& message,const sockad
         std::error_code(Netcp_errors::UNSENT_BYTES_ERROR.error_code, 
 								std::system_category());
 	}
+	TRACE_MSG("Bytes enviados: " << bytes_sent);
     return std::error_code(0, std::system_category());
 }
 
@@ -77,9 +78,9 @@ std::error_code receive_from(int fd, std::vector<uint8_t>& message,
 
 	std::string output(message.begin(),message.end());
 	// Imprimir el mensaje y la dirección del remitente
-	std::cout << std::format("El sistema '{}'' envió el mensaje '{}'\n",
-							ip_address_to_string(address),
-							output);	
+	// std::cout << std::format("El sistema '{}'' envió el mensaje '{}'\n",
+	// 						ip_address_to_string(address),
+	// 						output);	
 	return std::error_code(0, std::system_category());
 }
 
@@ -100,7 +101,7 @@ std::error_code netcp_send_file(const std::string& filename,
 	while (true)
 	{
 		auto read_file_result = read_file(open_file_fd, buffer);
-		//std::cout << "read_file_result: " << read_file_result << std::endl;
+		TRACE_MSG("read_file_result: " << read_file_result);
     	if (read_file_result) {
         	std::cerr << "Error al leer el archivo: " << read_file_result.message() << std::endl;
         	netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
@@ -118,8 +119,6 @@ std::error_code netcp_send_file(const std::string& filename,
 
 		// // Cerrar el descriptor de la llamada a read_file
 		// close(read_file_result.value());
-
-		send_to(sock_fd,buffer,remote_address);
 
 		// Verificar si llega al final del archivo
         if (buffer.empty()) {
@@ -144,17 +143,17 @@ std::error_code netcp_receive_file(const std::string& filename,
 								int sock_fd,
 								sockaddr_in& remote_address){
 
-	// auto open_file_result = open_file(filename, 
-	// 							O_WRONLY | O_CREAT, 
-	// 							0666);
+	auto open_file_result = open_file(filename, 
+								O_WRONLY | O_CREAT, 
+								0666);
+	if (!open_file_result) {
+		std::cerr << "Listening mode: ";
+		std::cerr << "Error al abrir el archivo: " << open_file_result.error().message() << std::endl;
+		netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
+	}
+	int open_file_fd = open_file_result.value();
 
-	// 	if (!open_file_result) {
-	// 		std::cerr << "Listening mode: ";
-	// 		std::cerr << "Error al abrir el archivo: " << open_file_result.error().message() << std::endl;
-	// 		netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
-	// 	}
 
-	// int open_file_fd = open_file_result.value();
     std::vector<uint8_t> buffer(UDP_SIZE);  // Tamaño del buffer
 
 	int count = 1;
@@ -177,17 +176,19 @@ std::error_code netcp_receive_file(const std::string& filename,
             break;
         }
 
-		// auto write_file_result = write_file(open_file_fd, buffer);
-		// std::cout << "write_file_result: " << write_file_result << std::endl;
-		// if (write_file_result) {
-		// 	std::cerr << "Listening mode: ";
-		// 	std::cerr << "Error al escribir el archivo: " << open_file_result.error().message() << std::endl;
-		// 	netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
-		// }
+		auto write_file_result = write_file(open_file_fd, buffer);
+		TRACE_MSG("write_file_result: " << write_file_result);
+		if (write_file_result) {
+			std::cerr << "Listening mode: ";
+			std::cerr << "Error al escribir el archivo: " << open_file_result.error().message() << std::endl;
+			netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
+		}
+		buffer.resize(UDP_SIZE);
+		count++;
 	}
 
 	// Cerrar el descriptor de la llamada a open_file
-	//close(open_file_fd);
+	close(open_file_fd);
 
 	return std::error_code(0, std::system_category());
 }

@@ -5,6 +5,8 @@
 #include <iostream>
 #include <format>
 #include "netinet/in.h"
+#include <thread>
+#include <chrono>
 #include "netcp_errors.hpp"
 #include "trace_macro.hpp"
 
@@ -36,7 +38,7 @@ std::error_code send_to(int fd, const std::vector<uint8_t>& message,const sockad
         std::error_code(Netcp_errors::UNSENT_BYTES_ERROR.error_code, 
 								std::system_category());
 	}
-	TRACE_MSG("Bytes enviados: " << bytes_sent);
+	//TRACE_MSG("Bytes enviados: " << bytes_sent);
     return std::error_code(0, std::system_category());
 }
 
@@ -101,16 +103,16 @@ std::error_code netcp_send_file(const std::string& filename,
 	while (true)
 	{
 		auto read_file_result = read_file(open_file_fd, buffer);
-		TRACE_MSG("read_file_result: " << read_file_result);
+		//TRACE_MSG("read_file_result: " << read_file_result);
     	if (read_file_result) {
         	std::cerr << "Error al leer el archivo: " << read_file_result.message() << std::endl;
         	netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
     	}
 
-		TRACE_MSG("----- Leído: -----");
-		TRACE_VECTOR(buffer);
-		TRACE_MSG("------------------");
-		TRACE_MSG("Iteración nº: " << count << "\n");
+		// TRACE_MSG("----- Leído: -----");
+		// TRACE_VECTOR(buffer);
+		// TRACE_MSG("------------------");
+		// TRACE_MSG("Iteración nº: " << count << "\n");
         auto send_result = send_to(sock_fd, buffer, remote_address);
         if (send_result) {
             std::cerr << "Error al enviar el archivo: " << send_result.message() << std::endl;
@@ -119,16 +121,19 @@ std::error_code netcp_send_file(const std::string& filename,
 
 		// // Cerrar el descriptor de la llamada a read_file
 		// close(read_file_result.value());
-
+		if ((count % 1000) == 0){
+			TRACE_MSG((count/1000) << "MB");
+		}
 		// Verificar si llega al final del archivo
         if (buffer.empty()) {
 			TRACE_MSG("Buffer vacío");
             break;
         }
-
+		std::this_thread::sleep_for(std::chrono::microseconds(10));
 		// Limpiar el búfer(dejando tamaño UDP_SIZE). Con clear da error.
         buffer.resize(UDP_SIZE);
 		count++;
+
 	}
 	
 
@@ -165,10 +170,10 @@ std::error_code netcp_receive_file(const std::string& filename,
             std::cerr << "Error al enviar el archivo: " << send_result.message() << std::endl;
             netcpErrorExit(Netcp_errors::UNSENT_BYTES_ERROR);
         }
-		TRACE_MSG("----- Recibido: -----");
-		TRACE_VECTOR(buffer);
-		TRACE_MSG("------------------");
-		TRACE_MSG("Iteración nº: " << count << "\n");
+		// TRACE_MSG("----- Recibido: -----");
+		// TRACE_VECTOR(buffer);
+		// TRACE_MSG("------------------");
+		// TRACE_MSG("Iteración nº: " << count << "\n");
 
 		// Verificar si llega al final del archivo
         if (buffer.empty()) {
@@ -176,8 +181,13 @@ std::error_code netcp_receive_file(const std::string& filename,
             break;
         }
 
+		if ((count % 1000) == 0){
+			TRACE_MSG((count/1000) << "MB");
+		}
+		//TRACE_MSG(count);
+
 		auto write_file_result = write_file(open_file_fd, buffer);
-		TRACE_MSG("write_file_result: " << write_file_result);
+		//TRACE_MSG("write_file_result: " << write_file_result);
 		if (write_file_result) {
 			std::cerr << "Listening mode: ";
 			std::cerr << "Error al escribir el archivo: " << open_file_result.error().message() << std::endl;

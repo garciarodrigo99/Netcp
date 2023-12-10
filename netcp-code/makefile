@@ -4,8 +4,8 @@ NETCP_CODE = netcp.cpp
 NETCP_EXE = netcp
 NETCP_EXE_TRACE = netcp_trace
 DEFAULT_PORT = 8080
-DEFAULT_ORIGIN_FILE = textfiles/testfile_big.txt
-DEFAULT_DESTINATION_FILE = textfiles/testfile_big_receive.txt
+DEFAULT_ORIGIN_FILE = textfiles/block_420mb.txt
+DEFAULT_DESTINATION_FILE = textfiles/block_420mb_receive.txt
 TRACE_FILE = headers/trace_macro.hpp
 
 # Reglas explícitas

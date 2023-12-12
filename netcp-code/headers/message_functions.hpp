@@ -129,7 +129,7 @@ std::error_code netcp_send_file(const std::string& filename,
 			TRACE_MSG("Buffer vacío");
             break;
         }
-		std::this_thread::sleep_for(std::chrono::microseconds(10));
+		std::this_thread::sleep_for(std::chrono::microseconds(1));
 		// Limpiar el búfer(dejando tamaño UDP_SIZE). Con clear da error.
         buffer.resize(UDP_SIZE);
 		count++;

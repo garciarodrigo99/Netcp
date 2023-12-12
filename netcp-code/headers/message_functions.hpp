@@ -93,6 +93,8 @@ std::error_code netcp_send_file(const std::string& filename,
 	auto open_file_result = open_file(filename, O_RDONLY, 0);
     if (!open_file_result) {
         std::cerr << "Error al abrir el archivo: " << open_file_result.error().message() << std::endl;
+		// Se cierra el fd del scoket para poder llamar a netcpErrorExit con los recursos liberados
+		close(sock_fd);
         netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
     }
 
@@ -106,6 +108,9 @@ std::error_code netcp_send_file(const std::string& filename,
 		//TRACE_MSG("read_file_result: " << read_file_result);
     	if (read_file_result) {
         	std::cerr << "Error al leer el archivo: " << read_file_result.message() << std::endl;
+			// Se cierra el fd del scoket y del open_file para poder llamar a netcpErrorExit con los recursos liberados
+			close(sock_fd);
+			close(open_file_fd);
         	netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
     	}
 
@@ -116,6 +121,9 @@ std::error_code netcp_send_file(const std::string& filename,
         auto send_result = send_to(sock_fd, buffer, remote_address);
         if (send_result) {
             std::cerr << "Error al enviar el archivo: " << send_result.message() << std::endl;
+			// Se cierra el fd del scoket y del open_file para poder llamar a netcpErrorExit con los recursos liberados
+			close(sock_fd);
+			close(open_file_fd);
             netcpErrorExit(Netcp_errors::UNSENT_BYTES_ERROR);
         }
 
@@ -154,6 +162,8 @@ std::error_code netcp_receive_file(const std::string& filename,
 	if (!open_file_result) {
 		std::cerr << "Listening mode: ";
 		std::cerr << "Error al abrir el archivo: " << open_file_result.error().message() << std::endl;
+		// Se cierra el fd del scoket para poder llamar a netcpErrorExit con los recursos liberados
+		close(sock_fd);
 		netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
 	}
 	int open_file_fd = open_file_result.value();
@@ -168,6 +178,9 @@ std::error_code netcp_receive_file(const std::string& filename,
         auto send_result = receive_from(sock_fd,buffer,remote_address);
         if (send_result) {
             std::cerr << "Error al enviar el archivo: " << send_result.message() << std::endl;
+			// Se cierra el fd del scoket y del open_file para poder llamar a netcpErrorExit con los recursos liberados
+			close(sock_fd);
+			close(open_file_fd);
             netcpErrorExit(Netcp_errors::UNSENT_BYTES_ERROR);
         }
 		// TRACE_MSG("----- Recibido: -----");
@@ -191,6 +204,9 @@ std::error_code netcp_receive_file(const std::string& filename,
 		if (write_file_result) {
 			std::cerr << "Listening mode: ";
 			std::cerr << "Error al escribir el archivo: " << open_file_result.error().message() << std::endl;
+			// Se cierra el fd del scoket y del open_file para poder llamar a netcpErrorExit con los recursos liberados
+			close(sock_fd);
+			close(open_file_fd);
 			netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
 		}
 		buffer.resize(UDP_SIZE);

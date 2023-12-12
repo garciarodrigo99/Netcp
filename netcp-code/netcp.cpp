@@ -29,6 +29,36 @@ std::string getenv_(const std::string& name)
 	}
 }
 
+void term_signal_handler(int signum)
+{
+    const char* message;
+
+    if (signum == SIGTERM)
+    {
+        message = "Señal SIGTERM recibida.\n";
+    }
+    else if (signum == SIGINT)
+    {
+        message = "Señal SIGINT recibida.\n";
+    }
+    else if (signum == SIGHUP)
+    {
+        message = "Señal SIGHUP recibida.\n";
+    }
+    else if (signum == SIGQUIT)
+    {
+        message = "Señal SIGQUIT recibida.\n";
+    }
+    else
+    {
+        message = "Señal desconocida recibida.\n";
+    }
+
+    write( STDOUT_FILENO, message, strlen(message));
+	quit_requested.store(true, std::memory_order_relaxed);
+
+}
+
 /*
 	Función que ejecuta el programa cuando se llama a la opción -l
 */
@@ -65,6 +95,15 @@ int main(int args, char* argv[]){
 		TRACE_MSG("NETCP_PORT: " << getenv_("NETCP_PORT"));
 		port = std::stoi(getenv_("NETCP_PORT"));
 	}
+
+	struct sigaction term_action = {0};
+    term_action.sa_handler = &term_signal_handler;
+    //term_action.sa_flags = SA_RESTART;
+
+    sigaction( SIGTERM, &term_action, NULL );
+    sigaction( SIGINT, &term_action, NULL );
+    sigaction( SIGHUP, &term_action, NULL );
+	TRACE_MSG(quit_requested);
 
 	if (options.value().listen){
 		listeningMode(port,options.value().output_filename);

@@ -46,6 +46,11 @@ export_:
 	export NETCP_PORT=8080; \
 	export NETCP_IP=192.168.0.26; \
 
+# Si existen los archivos, los borra
 clean:
-	rm $(NETCP_EXE)
-	rm $(NETCP_EXE_TRACE)
+	test -e $(NETCP_EXE) && rm $(NETCP_EXE) || true
+	test -e $(NETCP_EXE_TRACE) && rm $(NETCP_EXE_TRACE) || true
+
+# Si existen los archivos, los borra
+clean-receive:
+	rm textfiles/*receive.txt

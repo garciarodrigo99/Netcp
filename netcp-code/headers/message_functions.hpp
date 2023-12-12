@@ -3,15 +3,26 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <iomanip>
 #include <format>
 #include "netinet/in.h"
 #include <thread>
 #include <chrono>
+#include <atomic>
+#include <signal.h>
 #include "netcp_errors.hpp"
 #include "trace_macro.hpp"
 
 #define UDP_SIZE 1024
 
+std::atomic<bool> quit_requested(false);
+
+// Envía el contenido de una cadena de texto a través de un socket a la dirección especificada.
+// Parámetros:
+// - fd: Descriptor del socket.
+// - message: Cadena de texto a enviar.
+// - address: Dirección del destino.
+// Devuelve un objeto std::error_code que representa el resultado de la operación.
 std::error_code send_to(int fd, const std::string& message,const sockaddr_in& address){
     int bytes_sent = sendto(fd,
             message.data(), message.size(), 
@@ -19,6 +30,11 @@ std::error_code send_to(int fd, const std::string& message,const sockaddr_in& ad
 			reinterpret_cast<const sockaddr*>(&address),sizeof(address));
 
 	if (bytes_sent < 0) {
+		if(quit_requested.load(std::memory_order_relaxed)){
+			TRACE_MSG("quit_requested: " << std::boolalpha << quit_requested.load(std::memory_order_relaxed) << std::noboolalpha);
+			// No hay error, simplemente interrupción por señal
+			return std::error_code(0, std::system_category());
+		}
 		std::cerr << "Error en send_to: " << Netcp_errors::UNSENT_BYTES_ERROR.error_text;
         std::error_code(Netcp_errors::FILE_MISSING_ERROR.error_code, 
 								std::system_category());
@@ -26,7 +42,12 @@ std::error_code send_to(int fd, const std::string& message,const sockaddr_in& ad
     return std::error_code(0, std::system_category());
 }
 
-
+// Envía el contenido de un vector de bytes a través de un socket a la dirección especificada.
+// Parámetros:
+// - fd: Descriptor del socket.
+// - message: Vector de bytes a enviar.
+// - address: Dirección del destino.
+// Devuelve un objeto std::error_code que representa el resultado de la operación.
 std::error_code send_to(int fd, const std::vector<uint8_t>& message,const sockaddr_in& address){
     int bytes_sent = sendto(fd,
             message.data(), message.size(), 
@@ -34,6 +55,11 @@ std::error_code send_to(int fd, const std::vector<uint8_t>& message,const sockad
 			reinterpret_cast<const sockaddr*>(&address),sizeof(address));
 
 	if (bytes_sent < 0) {
+		if(quit_requested.load(std::memory_order_relaxed)){
+			TRACE_MSG("quit_requested: " << std::boolalpha << quit_requested.load(std::memory_order_relaxed) << std::noboolalpha);
+			// No hay error, simplemente interrupción por señal
+			return std::error_code(0, std::system_category());
+		}
 		std::cerr << "Error en send_to: " << Netcp_errors::UNSENT_BYTES_ERROR.error_text;
         std::error_code(Netcp_errors::UNSENT_BYTES_ERROR.error_code, 
 								std::system_category());
@@ -42,6 +68,12 @@ std::error_code send_to(int fd, const std::vector<uint8_t>& message,const sockad
     return std::error_code(0, std::system_category());
 }
 
+// Recibe datos a través de un socket y los almacena en una cadena de texto.
+// Parámetros:
+// - fd: Descriptor del socket.
+// - message: Cadena de texto que almacenará los datos recibidos.
+// - address: Dirección del remitente.
+// Devuelve un objeto std::error_code que representa el resultado de la operación.
 std::error_code receive_from(int fd, std::string& message, sockaddr_in& address){
 	socklen_t src_len = sizeof(address);
 	int bytes_read = recvfrom(fd,
@@ -50,7 +82,12 @@ std::error_code receive_from(int fd, std::string& message, sockaddr_in& address)
 							reinterpret_cast<sockaddr*>(&address),
 							&src_len);
 	if (bytes_read < 0){
-		std::cerr << "Error en send_to: " << Netcp_errors::UNRECEIVED_BYTES_ERROR.error_text;
+		if(quit_requested.load(std::memory_order_relaxed)){
+			TRACE_MSG("quit_requested: " << std::boolalpha << quit_requested.load(std::memory_order_relaxed) << std::noboolalpha);
+			// No hay error, simplemente interrupción por señal
+			return std::error_code(0, std::system_category());
+		}
+		std::cerr << "Error en receive_from: " << Netcp_errors::UNRECEIVED_BYTES_ERROR.error_text;
         std::error_code(Netcp_errors::UNRECEIVED_BYTES_ERROR.error_code, 
 								std::system_category());
 	}
@@ -62,6 +99,12 @@ std::error_code receive_from(int fd, std::string& message, sockaddr_in& address)
 	return std::error_code(0, std::system_category());
 }
 
+// Recibe datos a través de un socket y los almacena en un vector de bytes.
+// Parámetros:
+// - fd: Descriptor del socket.
+// - message: Vector de bytes que almacenará los datos recibidos.
+// - address: Dirección del remitente.
+// Devuelve un objeto std::error_code que representa el resultado de la operación.
 std::error_code receive_from(int fd, std::vector<uint8_t>& message, 
 							sockaddr_in& address){
 							
@@ -72,7 +115,12 @@ std::error_code receive_from(int fd, std::vector<uint8_t>& message,
 							reinterpret_cast<sockaddr*>(&address),
 							&src_len);
 	if (bytes_read < 0){
-		std::cerr << "Error en send_to: " << Netcp_errors::UNRECEIVED_BYTES_ERROR.error_text;
+		if(quit_requested.load(std::memory_order_relaxed)){
+			TRACE_MSG("quit_requested: " << std::boolalpha << quit_requested.load(std::memory_order_relaxed) << std::noboolalpha);
+			// No hay error, simplemente interrupción por señal
+			return std::error_code(0, std::system_category());
+		}
+		std::cerr << "Error en receive_from: " << Netcp_errors::UNRECEIVED_BYTES_ERROR.error_text;
         std::error_code(Netcp_errors::UNRECEIVED_BYTES_ERROR.error_code, 
 								std::system_category());
 	}
@@ -86,6 +134,12 @@ std::error_code receive_from(int fd, std::vector<uint8_t>& message,
 	return std::error_code(0, std::system_category());
 }
 
+// Envía el contenido de un archivo a través de un socket a la dirección especificada.
+// Parámetros:
+// - filename: Nombre del archivo a enviar.
+// - sock_fd: Descriptor del socket.
+// - remote_address: Dirección del destino.
+// Devuelve un objeto std::error_code que representa el resultado de la operación.
 std::error_code netcp_send_file(const std::string& filename,
 								int sock_fd,
 								const sockaddr_in& remote_address){
@@ -113,7 +167,10 @@ std::error_code netcp_send_file(const std::string& filename,
 			close(open_file_fd);
         	netcpErrorExit(Netcp_errors::FILE_NOT_FOUND_ERROR);
     	}
-
+		// Como no sale con error desde receive_from, no entra en el if anterior
+		if(quit_requested.load(std::memory_order_relaxed)){
+			break;
+		}
 		// TRACE_MSG("----- Leído: -----");
 		// TRACE_VECTOR(buffer);
 		// TRACE_MSG("------------------");
@@ -152,6 +209,12 @@ std::error_code netcp_send_file(const std::string& filename,
 	return std::error_code(0, std::system_category());
 }
 
+// Recibe datos a través de un socket y los escribe en un archivo especificado.
+// Parámetros:
+// - filename: Nombre del archivo a recibir.
+// - sock_fd: Descriptor del socket.
+// - remote_address: Dirección del remitente.
+// Devuelve un objeto std::error_code que representa el resultado de la operación.
 std::error_code netcp_receive_file(const std::string& filename,
 								int sock_fd,
 								sockaddr_in& remote_address){
@@ -177,12 +240,16 @@ std::error_code netcp_receive_file(const std::string& filename,
 
         auto send_result = receive_from(sock_fd,buffer,remote_address);
         if (send_result) {
-            std::cerr << "Error al enviar el archivo: " << send_result.message() << std::endl;
 			// Se cierra el fd del scoket y del open_file para poder llamar a netcpErrorExit con los recursos liberados
 			close(sock_fd);
 			close(open_file_fd);
+            std::cerr << "Error al enviar el archivo: " << send_result.message() << std::endl;
             netcpErrorExit(Netcp_errors::UNSENT_BYTES_ERROR);
         }
+		// Como no sale con error desde receive_from, no entra en el if anterior
+		if(quit_requested.load(std::memory_order_relaxed)){
+			break;
+		}
 		// TRACE_MSG("----- Recibido: -----");
 		// TRACE_VECTOR(buffer);
 		// TRACE_MSG("------------------");

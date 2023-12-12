@@ -7,11 +7,14 @@
 
 #pragma once
 
+
+// Estructura de datos para representar errores en el programa Netcp.
 struct ErrorStruct {
-    int error_code;
-    const char* error_text;
+    int error_code;            // Código único asociado al tipo de error.
+    const char* error_text;    // Mensaje descriptivo del error.
 };
 
+// Conjunto de errores específicos de Netcp, cada uno representado por un objeto ErrorStruct.
 struct Netcp_errors {
     static constexpr ErrorStruct FILE_MISSING_ERROR{2,"No se especificó el archivo a enviar.\n"};
     static constexpr ErrorStruct PORT_MISSING_ERROR{3,"No se especificó al que escuchar.\n"};
@@ -22,6 +25,7 @@ struct Netcp_errors {
     static constexpr ErrorStruct UNRECEIVED_BYTES_ERROR{8,"No se ha podido recibir bytes.\n"};
 };
 
+// Función que imprime un mensaje de error y termina la ejecución del programa con el código de error correspondiente.
 void netcpErrorExit(const ErrorStruct& error_type){
     std::cerr << "Error: " << error_type.error_text;
     std::exit(error_type.error_code);

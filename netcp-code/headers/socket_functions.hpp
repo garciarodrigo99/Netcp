@@ -10,6 +10,11 @@
 #include <system_error>
 #include "netcp_errors.hpp"
 
+// Convierte una dirección IP y puerto (sockaddr_in) a una cadena de texto en el formato "ip:puerto".
+// Parámetros:
+// - address: La dirección IP y puerto a convertir.
+// Retorna:
+// - Una cadena de texto que representa la dirección IP y puerto.
 std::string ip_address_to_string(const sockaddr_in& address){
 	in_addr_t s_addr = address.sin_addr.s_addr;
 	in_addr addr;
@@ -23,6 +28,12 @@ std::string ip_address_to_string(const sockaddr_in& address){
     return result;
 }
 
+// Crea y devuelve una estructura sockaddr_in configurada con la dirección IP y puerto proporcionados.
+// Parámetros:
+// - ip_address: Dirección IP en formato de cadena de texto opcional.
+// - port: Puerto opcional, con valor predeterminado 0.
+// Retorna:
+// - std::optional<sockaddr_in>: Estructura sockaddr_in creada o std::nullopt si hay errores.
 std::optional<sockaddr_in> make_ip_address(const std::optional<std::string> ip_address, 
 											uint16_t port = 0) {
 
@@ -84,8 +95,13 @@ std::optional<sockaddr_in> make_ip_address(const std::optional<std::string> ip_a
 	return address;
 }
 
-//[[nodiscard]]
 using make_socket_result = std::expected<int, std::error_code>;
+// Crea un socket y opcionalmente lo asocia a una dirección.
+// Parámetros:
+// - address: Estructura sockaddr_in opcional para asociar al socket.
+// Retorna:
+// - make_socket_result: std::expected<int, std::error_code>, donde int es el descriptor de socket o
+//                       std::error_code si hay un error durante la creación o asignación.
 make_socket_result make_socket(
 std::optional<sockaddr_in> address = std::nullopt){
 	// Crear el socket
